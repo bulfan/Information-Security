@@ -2,6 +2,8 @@ import sys
 
 
 def encrypt(text, key):
+    if (not key.isalpha() and int(key) % 26 == 0) or key == "abcdefghijklmnopqrstuvwxyz":
+        return text
     if not key.isalpha():
         key = int(key) % 26
         for i in range(len(text)):
@@ -22,9 +24,10 @@ def encrypt(text, key):
 
 
 def decrypt(text, key):
+    if (not key.isalpha() and int(key) % 26 == 0) or key == "abcdefghijklmnopqrstuvwxyz":
+        return text
     if not key.isalpha():
         key = int(key) % 26
-        text = list(text)
         for i in range(len(text)):
             if text[i].isalpha():
                 if text[i].isupper():
@@ -33,7 +36,6 @@ def decrypt(text, key):
                     text[i] = chr((ord(text[i]) - ord('a') - key) % 26 + ord('a'))
     else:
         key = list(key)
-        text = list(text)
         for i in range(len(text)):
             if text[i].isalpha():
                 if text[i].isupper():
