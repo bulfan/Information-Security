@@ -2,38 +2,47 @@ import sys
 import math
 
 
-def calculate_freq_vector(text, lower_bound, upper_bound):
-    vec = [[0]*26 for a in range(upper_bound)]
-    for x in range(lower_bound, upper_bound):
-        for i in range(0, len(text), x):
-            if text[i].isalpha():
-                index = ord(text[i]) - ord('a')
-                vec[x][index] += 1
-    print(vec)
+def calculate_freq_vector(text, k):
+    vec = [[0]*26 for _ in range(k)]
+    pos = 0
+    for char in text:
+        if char.isalpha():
+            subset = pos % k
+            index = ord(char.lower()) - ord('a')
+            vec[subset][index] += 1
+            pos += 1
     return vec
 
-def compute_std(vec, lower_bound, upper_bound):
-    stds = [0] * upper_bound
-    square_sum = [0] * upper_bound
-    square_sum[0] = vec[0] * vec[0]
-    sumx = [0] * upper_bound
-    sumx[0] = vec[0]
-    for t in range(1, upper_bound):
-        square_sum[t] = square_sum[t - 1] + vec[t] * vec [t]
-        sumx[t] = sumx[t - 1] + vec[t]
-        print(t)
-    for i in range(lower_bound - 1, upper_bound, 1):
-        stds[i] = math.sqrt(square_sum[i]/26 - sqr(sumx[i]/26))
-        print(f"The sum of {i + 1} std. devs: {stds[i]}")
 
-def sqr(x):
-    y = x*x
-    return y
-            
+def calculate_std(freq_vec):
+    n = 26
+    sumx = sum(freq_vec)
+    if sumx == 0:
+        return 0
+    mean = sumx / n
+    std = math.sqrt(sum(f ** 2 for f in freq_vec) / n - mean ** 2)
+    return std
+
+
 if __name__ == "__main__":
     lower_bound = int(input())
     upper_bound = int(input())
     text = sys.stdin.read()
     text = list(text.lower())
-    freq_vec = calculate_freq_vector(text, lower_bound, upper_bound)
-    #compute_std(freq_vec, lower_bound, upper_bound)
+    max_std = 0
+    result = [0, []]
+    for k in range(lower_bound, upper_bound + 1):
+        freq_vectors = calculate_freq_vector(text, k)
+        std_sum = sum(calculate_std(vec) for vec in freq_vectors)
+        if std_sum > max_std:
+            max_std = std_sum
+            result = [k, freq_vectors]
+        print(f"The sum of {k} std. devs: {std_sum:.2f}")
+    key = ''
+    for vec in result[1]:
+        index = vec.index(max(vec))
+        shift = (index - 4) % 26  # ord(e) - ord('a') = 4
+        key += chr(ord('a') + shift)
+    
+    print("\nKey guess:")
+    print(key)
