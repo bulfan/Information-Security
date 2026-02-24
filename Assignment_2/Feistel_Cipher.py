@@ -20,7 +20,7 @@ def decrypt(block, key):
 
 
 def F(rh, key):
-    return bytes(key)
+    return bytes(rh[i] ^ key[i % len(key)] for i in range(len(rh)))
 
 
 if __name__ == "__main__":
