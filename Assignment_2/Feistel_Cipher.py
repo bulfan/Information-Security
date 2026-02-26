@@ -1,26 +1,26 @@
 import sys
 
 
-def encrypt(block, key):
-    lh = block[:4]
-    rh = block[4:]
+def feistel(lh, rh, round_key):
     new_lh = rh
-    rh = bytes(lh[i] ^ F(rh, key)[i] for i in range(4))
-    lh = new_lh
-    return rh + lh
+    new_rh = bytes(lh[i] ^ round_key[i] for i in range(4))
+    return new_lh, new_rh
 
 
-def decrypt(block, key):
+def encrypt(block, keys):
     lh = block[:4]
     rh = block[4:]
-    new_rh = lh
-    lh = bytes(rh[i] ^ F(lh, key)[i] for i in range(4))
-    rh = new_rh
-    return rh + lh
+    for round_key in keys:
+        lh, rh = feistel(lh, rh, round_key)
+    return lh + rh
 
 
-def F(rh, key):
-    return bytes(rh[i] ^ key[i % len(key)] for i in range(len(rh)))
+def decrypt(block, keys):
+    lh = block[:4]
+    rh = block[4:]
+    for round_key in keys:
+        lh, rh = feistel(lh, rh, round_key)
+    return lh + rh
 
 
 if __name__ == "__main__":
@@ -31,17 +31,18 @@ if __name__ == "__main__":
     all_input = all_input[separator + 1:]
 
     separator = all_input.index(0xFF)
-    key = all_input[:separator]
+    key_bytes = all_input[:separator]
     data = all_input[separator + 1:]
+
+    keys = [key_bytes[i:i + 4] for i in range(0, len(key_bytes), 4)]
 
     result = bytearray()
     for i in range(0, len(data), 8):
         block = data[i:i + 8]
-        if mode == b'd':
-            result.extend(decrypt(block, key))
+        if mode == bytes([0x64]):
+            result.extend(decrypt(block, keys))
         else:
-            result.extend(encrypt(block, key))
+            result.extend(encrypt(block, keys))
 
-    result = bytes(result)
-    sys.stdout.buffer.write(result)
+    sys.stdout.buffer.write(bytes(result))
     sys.stdout.buffer.flush()
